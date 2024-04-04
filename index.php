@@ -1,19 +1,21 @@
+<?php
+    include_once 'functions.php';
+    $conn = connectToDatabase('localhost', 'social_network', 'root', 'heslo');
+?>
 <html>
     <head>
         <title>Facebook</title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <link rel="stylesheet" href="style.css"/>
-
+        <script src="js/functions.js"></script>
     </head>
     <body>
-
-        
 
         <?php
             include 'header.php'
         ?>
         </nav>
-
+x;
         <div class="container">
             <div class="row">
                 <div class="col-md-2">
@@ -107,113 +109,19 @@
                                         </div>
                                         </div>
                                         <br/>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="card">
-                                                    <div class="card-body">
-                                                        <div style="font-size: 14px; color: gray">
-                                                            <img src="images/profile-default.png" class="rounded-circle" style="width: 40px; margin-right: 4px"/>
-                                                            <a href="#"><b>Luciano Lopes</b></a> shared a <a href="#">link</a> in the group <a href="#">Lorem ipsum dolor sit</a>        
-                                                        </div>
-                                                        <br/>
-                                                        <img src="images/banner-default.png" style="width: 100%;"/>
-                                                        <br/><br/>
-                                                        <a href="#">Lorem ipsum dolor sit amet</a><br/>
-                                                        <span>
-                                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in feugiat mauris. Maecenas nec pharetra arcu. Cras eleifend posuere dui, in molestie eros placerat vel.
-                                                        </span>
-                                                    </div>
-                                                    <hr/>
-                                                    <div class="row">
-                                                        <div class="col-md-12">
-                                                            <div style="text-align: right">
-                                                                <span style="margin-right: 24px">1 share 13 thousand views</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <hr/>
-                                                    <div class="row" style="margin-left: 0px;">
-                                                        <div class="col-md-3">
-                                                            <button class="fc-btn fc-btn-white">
-                                                                <div class="fc-icon">
-                                                                    <label>Like</label>
-                                                                </div>                                    
-                                                            </button>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <button class="fc-btn fc-btn-white">
-                                                                <div class="fc-icon fc-icon-comentar">
-                                                                    <label>Comment</label>
-                                                                </div>                                    
-                                                            </button>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <button class="fc-btn fc-btn-white">
-                                                                <div class="fc-icon fc-icon-compartilhar">
-                                                                    <label>Share</label>
-                                                                </div>                                    
-                                                            </button>
-                                                        </div>   
-                                                    </div>
-                                                    <br/>
-                                                </div> 
-                                            </div>
-                                        </div> 
-                                        
-                                        <br/>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="card">
-                                                    <div class="card-body">
-                                                        <div style="font-size: 14px; color: gray">
-                                                            <img src="images/profile-default.png" class="rounded-circle" style="width: 40px; margin-right: 4px"/>
-                                                            <a href="#"><b>Luciano Lopes</b></a> shared a <a href="#">link</a> in the group <a href="#">Lorem ipsum dolor sit</a>        
-                                                        </div>
-                                                        <br/>
-                                                        <img src="images/banner-default.png" style="width: 100%;"/>
-                                                        <br/><br/>
-                                                        <a href="#">Lorem ipsum dolor sit amet</a><br/>
-                                                        <span>
-                                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in feugiat mauris. Maecenas nec pharetra arcu. Cras eleifend posuere dui, in molestie eros placerat vel.
-                                                        </span>
-                                                    </div>
-                                                    <hr/>
-                                                    <div class="row">
-                                                        <div class="col-md-12">
-                                                            <div style="text-align: right">
-                                                                <span style="margin-right: 24px">10 shares 31 thousand views</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <hr/>
-                                                    <div class="row" style="margin-left: 0px;">
-                                                        <div class="col-md-3">
-                                                            <button class="fc-btn fc-btn-white">
-                                                                <div class="fc-icon">
-                                                                    <label>Like</label>
-                                                                </div>                                    
-                                                            </button>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <button class="fc-btn fc-btn-white">
-                                                                <div class="fc-icon fc-icon-comentar">
-                                                                    <label>Comment</label>
-                                                                </div>                                    
-                                                            </button>
-                                                        </div>
-                                                        <div class="col-md-3">
-                                                            <button class="fc-btn fc-btn-white">
-                                                                <div class="fc-icon fc-icon-compartilhar">
-                                                                    <label>Share</label>
-                                                                </div>                                    
-                                                            </button>
-                                                        </div>   
-                                                    </div>
-                                                    <br/>
-                                                </div> 
-                                            </div>
-                                        </div> 
-                                        
+                                        <!--Vyberanie príspevkov a zobrazovanie na webstránke-->
+                                        <?php
+                                        include_once 'functions.php';
+                                        $conn = connectToDatabase('localhost', 'social_network', 'root', 'heslo');
+                                        $posts = fetchPostsFromDatabase($conn);
+                                        foreach ($posts as $post) {
+                                            $post->renderPost();
+                                        }
+                                        $conn = null;
+                                        ?>
+
+
+                                        <br/>          
                                         </div>
                                         <div class="col-md-4">
                                             <br/>
