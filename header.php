@@ -10,7 +10,12 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                
+                <?php if ($_SESSION['role'] == 'admin') {
+                    echo '<div class="input-group fc-input-group-navbar mb-3">
+                <a href="userinfo.php" class="btn btn-danger">Admin</a>
+            </div>';
+                }
+                ?>
                 <div class="input-group fc-input-group-navbar mb-3">
                     <a href="index.php" class="btn" style="background-color: #5c60d6">Home</a>
                 </div>
@@ -21,7 +26,9 @@
                         <a class="nav-link fc-nav-link" href="#">
                             <img src="images/profile-default.png" class="rounded-circle"
                                 style="width: 22px; margin-right: 4px" />
-                            
+                            <?php
+                            echo $_SESSION['username'];
+                            ?>
                         </a>
                     </li>
 
