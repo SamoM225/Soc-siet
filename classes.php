@@ -234,4 +234,95 @@ class Login
 	}
 }
 
+class Post
+{
+	private $id;
+	private $conn;
+	private $postManager;
+	public function __construct($conn)
+	{
+		$this->conn = $conn;
+	}
+
+	public function createPost($userid, $description, $img)
+	{
+		try {
+			$sql = 'INSERT INTO posts (account_id, description, img) VALUES (?, ?, ?)';
+			$stmt = $this->conn->prepare($sql);
+			$stmt->bindValue(1, $userid, PDO::PARAM_INT);
+			$stmt->bindValue(2, $description, PDO::PARAM_STR);
+			$stmt->bindValue(3, $img, PDO::PARAM_STR);
+			$result = $stmt->execute();
+			return $result;
+		} catch (Exception $e) {
+			echo '<p> Error!' . $e . '</p>';
+		}
+	}
+	public function updatePost($id, $description, $img)
+	{
+		try {
+			$sql = 'UPDATE posts SET description = :description, image = :img WHERE id = :id';
+			$stmt = $this->conn->prepare($sql);
+			$stmt->bindValue(':id', $id);
+			$stmt->bindValue(':description', $description);
+			$stmt->bindValue(':img', $img);
+			$stmt->execute();
+		} catch (Exception $e) {
+			echo '<p> Error!' . $e . '</p>';
+		}
+	}
+	public function deletePost($id)
+	{
+		$sql = 'SELECT * FROM posts WHERE post_id=:id';
+		$stmt = $this->conn->prepare($sql);
+		$stmt->bindValue(':id', $id, PDO::PARAM_INT);
+		$stmt->execute();
+
+		$post = $stmt->fetch(PDO::FETCH_ASSOC);
+
+		if ($post) {
+			$sql = 'DELETE FROM posts WHERE post_id=:id';
+			$stmt = $this->conn->prepare($sql);
+			$stmt->bindValue(':id', $id, PDO::PARAM_INT);
+			$stmt->execute();
+			return true;
+		} else {
+			return false;
+		}
+	}
+	public function uploadPicture($file)
+	{
+		$targetDir = "uploads/";
+		$fileName = uniqid() . '_' . basename($file['name']);
+
+		$targetFilePath = $targetDir . $fileName;
+
+		if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
+			return $targetFilePath;
+		} else {
+			return false;
+		}
+	}
+	public function getUserPosts($identifier)
+	{
+		$info = array();
+		if (is_numeric($identifier)) {
+			$query = 'SELECT posts.*, accounts.account_name FROM posts JOIN accounts ON posts.account_id = accounts.account_id WHERE posts.account_id = :id';
+			$stmt = $this->conn->prepare($query);
+			$stmt->bindParam(':id', $identifier, PDO::PARAM_INT);
+		} else {
+			$query = 'SELECT posts.*, accounts.account_name FROM posts JOIN accounts ON posts.account_id = accounts.account_id WHERE accounts.account_name = :name';
+			$stmt = $this->conn->prepare($query);
+			$stmt->bindParam(':name', $identifier, PDO::PARAM_STR);
+		}
+		$stmt->execute();
+		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+			$info[] = $row;
+		}
+
+		return $info;
+	}
+
+}
+
 ?>
