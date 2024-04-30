@@ -54,8 +54,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     include 'header.php'
         ?>
 
-    </nav>
-
+    </nav><?php
+    echo $_SESSION['pfp'];
+    ?>
     <div class="container">
         <div class="row">
             <div class="col-md-2">

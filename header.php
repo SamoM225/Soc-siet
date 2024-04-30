@@ -23,7 +23,7 @@
 
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link fc-nav-link" href="#">
+                        <a class="nav-link fc-nav-link" href="userprofile.php">
                             <img src="images/profile-default.png" class="rounded-circle"
                                 style="width: 22px; margin-right: 4px" />
                             <?php

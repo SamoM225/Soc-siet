@@ -220,6 +220,7 @@ class Login
 				$_SESSION['user_id'] = $result['account_id'];
 				$_SESSION['username'] = $result['account_name'];
 				$_SESSION['role'] = $result['role'];
+				$_SESSION['pfp'] = $result['pfp'];
 				header('Location: index.php');
 				return true;
 			} else {
@@ -321,6 +322,34 @@ class Post
 		}
 
 		return $info;
+	}
+
+	public function uploadPfp($file)
+	{
+		$targetDir = "pfp/";
+		$fileName = uniqid() . '_' . basename($file['name']);
+		$targetFilePath = $targetDir . $fileName;
+
+		if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
+			try {
+				$query = 'UPDATE accounts SET pfp = :filepath WHERE account_id = :id';
+				$stmt = $this->conn->prepare($query);
+				$stmt->bindParam(':filepath', $targetFilePath, PDO::PARAM_STR);
+				$stmt->bindParam(':id', $_SESSION['user_id'], PDO::PARAM_INT);
+				$stmt->execute() || die($this->conn->errorInfo()[2]);
+				$rowCount = $stmt->rowCount();
+
+				if ($rowCount > 0) {
+					return $targetFilePath;
+				}
+			} catch (PDOException $e) {
+				echo "Error: " . $e->getMessage(); // Debug output
+				return false;
+			}
+		} else {
+			echo "Failed to move uploaded file."; // Debug output
+			return false;
+		}
 	}
 
 }

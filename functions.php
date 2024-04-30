@@ -23,7 +23,7 @@ function renderPost($post)
             <div class="card">
                 <div class="card-body">
                     <div style="font-size: 14px; color: gray">
-                        <img src="' . $post['img'] . '" class="rounded-circle" style="width: 40px; margin-right: 4px"/>
+                        <img src="' . $_SESSION['pfp'] . '" class="rounded-circle" style="width: 40px; margin-right: 4px"/>
                         <a href="#"><b>' . $post['account_name'] . '</b></a> shared a <a href="#">link</a> in the group <a href="#">Lorem ipsum dolor sit</a>        
                     </div>
                     <br/>
