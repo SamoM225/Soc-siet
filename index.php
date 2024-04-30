@@ -2,7 +2,38 @@
 session_start();
 include_once 'classes.php';
 include_once 'db_inc.php';
-
+$login = new Login($pdo);
+$user = new Account();
+$post = new Post($pdo);
+if ($_SESSION['username'] == NULL) {
+    header('Location: login.php');
+}
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (!empty($_POST['description'])) {
+        $description = $_POST['description'];
+        $userId = $_SESSION['user_id'];
+        if (!empty($_FILES['picture']['tmp_name'])) {
+            $imgPath = $post->uploadPicture($_FILES['picture']);
+            if ($imgPath) {
+                if ($post->createPost($userId, $description, $imgPath)) {
+                    echo "Post created successfully.";
+                } else {
+                    echo "Failed to create post.";
+                }
+            } else {
+                echo "Failed to upload picture.";
+            }
+        } else {
+            if ($post->createPost($userId, $description, $imgPath = NULL)) {
+                echo "Post created successfully.";
+            } else {
+                echo "Failed to create post.";
+            }
+        }
+    } else {
+        echo "Description is required.";
+    }
+}
 ?>
 
 
