@@ -4,6 +4,7 @@ include_once 'db_inc.php';
 include_once 'classes.php';
 
 $post = new Post($pdo);
+$account = new Account();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['account_id'])) {
     if (isset($_POST['account_id'])) {
@@ -22,6 +23,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_post_id'])) {
             echo 'Post deleted';
         }
     }
+if($_SERVER['REQUEST_METHOD'] == 'POST'&& isset($_POST['delete_user_id'])) {
+    $user_id = $_POST['delete_user_id'];
+    if($account->deleteAccount($user_id) == False) {
+        echo 'No such user exists';
+    }else{
+        echo 'User deleted';
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -39,30 +48,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_post_id'])) {
 <body>
     <?php include_once 'header.php'; ?>
     <div class="container">
-        <div class="row">
-            <div class="col-md-6 offset-md-3">
-                <form action="" method="post">
-                    <h3>Enter Username or Account ID:</h3>
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" name="account_id" aria-label="account_id"
-                            aria-describedby="basic-addon1">
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="height: 40px;padding: 8px 16px;">Show
-                        User</button>
-                </form>
-            </div>
-            <div class="col-md-3">
-                <form action="" method="post">
-                    <div class="mb-3">
-                        <label for="delete_post_id" class="form-control">Delete Post by ID:</label>
-                        <input type="text" class="form-control" name="delete_post_id" id="delete_post_id" rows="1"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-danger" style="height: 40px;padding: 8px 16px;">Delete
-                        Post</button>
-                </form>
-            </div>
+    <div class="row">
+        <div class="col-md-3">
+            <form action="" method="post">
+                <div class="mb-3">
+                    <label for="delete_user_id" class="form-control">Delete User by ID:</label>
+                    <input type="text" class="form-control" name="delete_user_id" id="delete_user_id" rows="1">
+                </div>
+                <button type="submit" class="btn btn-danger" style="height: 40px;padding: 8px 16px;">Delete User</button>
+            </form>
+        </div>
+        <div class="col-md-6 offset-md-3">
+            <form action="" method="post">
+                <h3>Enter Username or Account ID:</h3>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" name="account_id" aria-label="account_id" aria-describedby="basic-addon1">
+                </div>
+                <button type="submit" class="btn btn-primary" style="height: 40px;padding: 8px 16px;">Show User</button>
+            </form>
+        </div>
+        <div class="col-md-3">
+            <form action="" method="post">
+                <div class="mb-3">
+                    <label for="delete_post_id" class="form-control">Delete Post by ID:</label>
+                    <input type="text" class="form-control" name="delete_post_id" id="delete_post_id" rows="1">
+                </div>
+                <button type="submit" class="btn btn-danger" style="height: 40px;padding: 8px 16px;">Delete Post</button>
+            </form>
         </div>
     </div>
+</div>
+
     <div class="container" id="user_data">
         <?php
         if (!empty($account)):
@@ -71,10 +87,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_post_id'])) {
                 ?>
                 <div class="card mb-3">
                     <div class="card-body">
+                        <h4 class="card-text">Account Name: <?php echo $post['account_name']; ?></p>
                         <h5 class="card-title">Post ID: <?php echo $post['post_id']; ?></h5>
                         <p class="card-text">Account ID: <?php echo $post['account_id']; ?></p>
                         <p class="card-text">Description: <?php echo $post['description']; ?></p>
-                        <img src="<?php echo $img; ?>" class="img-fluid" alt="No Img">
+                        <img src="<?php echo $img; ?>" class="img-fluid" alt="">
                         <p class="card-text">Post Date: <?php echo $post['post_date']; ?></p>
                     </div>
                 </div>

@@ -78,17 +78,18 @@ class Account
 			throw new Exception('Invalid account ID');
 		}
 
-		$query = 'DELETE FROM social_network.accounts WHERE (account_id = :id)';
-
-		$values = array(':id' => $id);
+		$query = 'UPDATE accounts SET account_enabled = 0 WHERE (account_id = :id)';
 
 		try {
-			$res = $pdo->prepare($query);
-			$res->execute($values);
+			$stmt = $pdo->prepare($query);
+			$stmt->bindValue(':id', $id, PDO::PARAM_INT);
+			$stmt->execute();
+			return ($stmt->rowCount() > 0) ? True : False;
 		} catch (PDOException $e) {
 			throw new Exception('Database query error');
 		}
 	}
+
 	public function editAccount(int $id, string $name, string $passwd, bool $enabled)
 	{
 		global $pdo;
@@ -233,13 +234,20 @@ class Login
 		}
 
 	}
+	public function verifyAccount($username)
+	{
+		$sql = 'SELECT account_enabled FROM accounts WHERE account_name = :username';
+		$stmt = $this->conn->prepare($sql);
+		$stmt->bindValue(':username', $username, PDO::PARAM_STR);
+		$stmt->execute();
+		$result = $stmt->fetch();
+		return $result['account_enabled'];
+	}
 }
 
 class Post
 {
-	private $id;
 	private $conn;
-	private $postManager;
 	public function __construct($conn)
 	{
 		$this->conn = $conn;
@@ -343,15 +351,27 @@ class Post
 					return $targetFilePath;
 				}
 			} catch (PDOException $e) {
-				echo "Error: " . $e->getMessage(); // Debug output
+				echo "Error: " . $e->getMessage();
 				return false;
 			}
 		} else {
-			echo "Failed to move uploaded file."; // Debug output
+			echo "Failed to move uploaded file.";
 			return false;
 		}
 	}
 
+	public function uploadComment($postid, $comment, $username)
+	{
+		$sql = 'INSERT INTO comments (post_id, comment_text, commenter_name) VALUES (:postid, :comment, :username)';
+		try {
+			$stmt = $this->conn->prepare($sql);
+			$stmt->bindParam(':postid', $postid, PDO::PARAM_INT);
+			$stmt->bindParam(':comment', $comment, PDO::PARAM_STR);
+			$stmt->bindParam(':username', $username, PDO::PARAM_STR);
+			$stmt->execute();
+			return 1;
+		} catch (PDOException $e) {
+			echo "Error: " . $e->getMessage();
+		}
+	}
 }
-
-?>

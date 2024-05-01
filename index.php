@@ -30,8 +30,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo "Failed to create post.";
             }
         }
-    } else {
-        echo "Description is required.";
+    }
+}
+if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
+    $comment = $_POST['comment'];
+    $postid = $_POST['postId'];
+    $username = $_SESSION['username'];
+    if($post->uploadComment($postid, $comment, $username) === 1){
+        echo 'Comment added successfully';
+    }else{
+        echo 'chyba';
     }
 }
 ?>
@@ -54,9 +62,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     include 'header.php'
         ?>
 
-    </nav><?php
-    echo $_SESSION['pfp'];
-    ?>
+    </nav>
     <div class="container">
         <div class="row">
             <div class="col-md-2">
@@ -143,9 +149,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 include_once 'functions.php';
                 include_once 'db_inc.php';
                 $posts = fetchPostsFromDatabase($pdo);
-                foreach ($posts as $post) {
-                    renderPost($post);
-                }
+                    foreach ($posts as $post) {
+                        renderPost($post);
+                    }
                 $conn = null;
                 ?>
 

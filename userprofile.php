@@ -35,8 +35,6 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_pic'])) {
     <div class="container mt-4">
         <div class="row justify-content-center">
             <div class="col-md-4">
-                <div class="alert alert-info text-center"></div>
-                <?php echo $_SESSION['pfp'];?>
                 <img src="<?php echo $_SESSION['pfp']; ?>" alt="Profile Picture" class="img-fluid rounded-circle">
                 <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post"
                     enctype="multipart/form-data" class="mt-4">

@@ -15,9 +15,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
    
     if(empty($username) || empty($password)){
         $error = 'Všetky polia musia byť vyplnené';
+    }elseif($login->verifyAccount($username) === 0){
+        $error = 'Deaktivovaný účet!';
     }else{
-        $login->login($username, $password);
-    } 
+        $login->login( $username, $password );
+        
+        header("Location: index.php");
+    }
 }
 ?>
 
