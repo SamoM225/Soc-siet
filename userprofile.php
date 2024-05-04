@@ -4,7 +4,7 @@ error_reporting(E_ALL);
 ini_set("display_errors",1);
 include_once 'classes.php';
 include_once 'db_inc.php';
-
+include_once 'verification.php';
 $account = new Post($pdo);
 
 if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_pic'])) {

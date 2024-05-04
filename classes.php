@@ -38,27 +38,14 @@ class Account
 		$name = trim($name);
 		$passwd = trim($passwd);
 
-		if (!$this->isNameValid($name)) {
-			throw new Exception('Invalid user name');
-		}
-		if (!$this->isPasswdValid($passwd)) {
-			throw new Exception('Invalid password');
-		}
-
 		if (!is_null($this->getIdFromName($name))) {
 			throw new Exception('User name not available');
 		}
 
-		if ($name == 'root') {
-			$query = 'INSERT INTO social_network.accounts (account_name, account_passwd, account_enabled, role) VALUES (:name, :passwd, 1, "admin")';
-			$hash = password_hash($passwd, PASSWORD_DEFAULT);
-			$values = array(':name' => $name, ':passwd' => $hash);
-		} else {
-			$query = 'INSERT INTO social_network.accounts (account_name, account_passwd, account_enabled) VALUES (:name, :passwd, 1)';
-			$hash = password_hash($passwd, PASSWORD_DEFAULT);
-			$values = array(':name' => $name, ':passwd' => $hash);
-		}
 
+		$query = 'INSERT INTO social_network.accounts (account_name, account_passwd, account_enabled, role) VALUES (:name, :passwd, 1, "user")';
+		$hash = password_hash($passwd, PASSWORD_DEFAULT);
+		$values = array(':name' => $name, ':passwd' => $hash);
 
 		try {
 			$res = $pdo->prepare($query);
@@ -101,14 +88,6 @@ class Account
 			throw new Exception('Invalid account ID');
 		}
 
-		if (!$this->isNameValid($name)) {
-			throw new Exception('Invalid user name');
-		}
-
-		if (!$this->isPasswdValid($passwd)) {
-			throw new Exception('Invalid password');
-		}
-
 		$idFromName = $this->getIdFromName($name);
 		if (!is_null($idFromName) && ($idFromName != $id)) {
 			throw new Exception('User name already used');
@@ -125,31 +104,7 @@ class Account
 		}
 	}
 
-	public function isNameValid(string $name): bool
-	{
-		$valid = TRUE;
 
-		$len = mb_strlen($name);
-
-		if (($len < 4) || ($len > 16)) {
-			$valid = FALSE;
-		}
-
-
-		return $valid;
-	}
-
-	public function isPasswdValid(string $passwd): bool
-	{
-		$valid = TRUE;
-		$len = mb_strlen($passwd);
-
-		if (($len < 8) || ($len > 16)) {
-			$valid = FALSE;
-		}
-
-		return $valid;
-	}
 
 	public function isIdValid(int $id): bool
 	{
@@ -164,10 +119,25 @@ class Account
 
 	public function logout()
 	{
-		session_unset();
+		$_SESSION = array();
+
+		if (ini_get("session.use_cookies")) {
+			$params = session_get_cookie_params();
+			setcookie(
+				session_name(),
+				'',
+				time() - 42000,
+				$params["path"],
+				$params["domain"],
+				$params["secure"],
+				$params["httponly"]
+			);
+		}
 		session_destroy();
 		header('Location: login.php');
+		exit;
 	}
+
 
 
 
@@ -175,9 +145,7 @@ class Account
 	{
 		global $pdo;
 
-		if (!$this->isNameValid($name)) {
-			throw new Exception('Invalid user name');
-		}
+
 
 		$id = NULL;
 
@@ -232,8 +200,23 @@ class Login
 			echo '<p> Neprešla verifikacia</p>';
 			return false;
 		}
-
 	}
+	public function verifyCredentials($username, $password)
+	{
+		$sql = 'SELECT account_name, account_passwd FROM accounts WHERE account_name = :username';
+		$stmt = $this->conn->prepare($sql);
+		$stmt->bindValue(':username', $username, PDO::PARAM_STR);
+		$stmt->execute();
+		$result = $stmt->fetch();
+
+		if ($result && password_verify($password, $result['account_passwd'])) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+
 	public function verifyAccount($username)
 	{
 		$sql = 'SELECT account_enabled FROM accounts WHERE account_name = :username';
@@ -244,7 +227,6 @@ class Login
 		return $result['account_enabled'];
 	}
 }
-
 class Post
 {
 	private $conn;

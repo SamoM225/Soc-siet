@@ -1,25 +1,27 @@
 <?php
 session_start();
-ini_set( 'display_errors', 1 ); 
+ini_set('display_errors', 1);
 include_once 'db_inc.php';
 include_once 'classes.php';
 
-
-$login = new Login($pdo);
+$account =
+    $login = new Login($pdo);
 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username']; 
-    $password = $_POST['password']; 
+    $username = $_POST['username'];
+    $password = $_POST['password'];
 
-   
-    if(empty($username) || empty($password)){
+
+    if (empty($username) || empty($password)) {
         $error = 'Všetky polia musia byť vyplnené';
-    }elseif($login->verifyAccount($username) === 0){
+    } elseif ($login->verifyCredentials($username, $password) === false) {
+        $error = 'Zle heslo alebo meno';
+    } elseif ($login->verifyAccount($username) === 0) {
         $error = 'Deaktivovaný účet!';
-    }else{
-        $login->login( $username, $password );
-        
+    } else {
+        $login->login($username, $password);
+
         header("Location: index.php");
     }
 }
@@ -27,6 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,10 +37,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
 </head>
+
 <body>
     <div class="wrapper">
         <header>Login Form</header>
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" method="POST">
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST">
             <div class="field user">
                 <div class="input-area">
                     <input type="text" name="username" placeholder="user">
@@ -58,9 +62,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="submit" value="Login">
         </form>
         <div class="sign-txt">Not yet member? <a href="register.php">Signup now</a></div>
-        <?php if(isset($error)) { ?>
+        <?php if (isset($error)) { ?>
             <div class="error"><?php echo $error; ?></div>
         <?php } ?>
     </div>
 </body>
+
 </html>

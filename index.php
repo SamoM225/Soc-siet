@@ -2,12 +2,12 @@
 session_start();
 include_once 'classes.php';
 include_once 'db_inc.php';
+include_once 'verification.php';
+
 $login = new Login($pdo);
 $user = new Account();
 $post = new Post($pdo);
-if ($_SESSION['username'] == NULL) {
-    header('Location: login.php');
-}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!empty($_POST['description'])) {
         $description = $_POST['description'];

@@ -2,6 +2,10 @@
 session_start();
 include_once 'db_inc.php';
 include_once 'classes.php';
+include_once 'verification.php';
+if($_SESSION['role'] != 'admin'){
+    header('Location: index.php');
+}
 
 $post = new Post($pdo);
 $account = new Account();
