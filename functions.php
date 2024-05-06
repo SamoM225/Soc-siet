@@ -53,7 +53,6 @@ function renderPost($post)
         echo '<hr/>
                 <button class="btn btn-outline-light" type="button" data-bs-toggle="collapse" data-bs-target="#commentsCollapse' . $post['post_id'] . '" aria-expanded="false" aria-controls="commentsCollapse' . $post['post_id'] . '">
                     <i class="bi bi-chat-square"></i>
-                    
                     <span>Comment</span>
                 </button>
                 

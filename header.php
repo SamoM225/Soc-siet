@@ -32,36 +32,14 @@
                         </a>
                     </li>
 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link" href="#" id="navbarDropdownMessenger" role="button"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="fc-icon-navbar fc-icon-notificao-messenger"></div>
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link" href="#" id="navbarDropdownNotifications" role="button"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="fc-icon-navbar fc-icon-notificao-notificacoes"></div>
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link" href="#" id="navbarDropdownHelp" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            <div class="fc-icon-navbar fc-icon-notificao-ajuda"></div>
-                        </a>
-                    </li>
+                    
                     <li class="nav-item dropdown">
                         <a class="nav-link" href="#" id="navbarDropdownMore" role="button" data-bs-toggle="dropdown"
                             aria-expanded="false">
-                            <div class="fc-icon-navbar fc-icon-notificao-mais"></div>
+                            <div class="fc-icon-navbar bi bi-caret-down"></div>
                         </a>
+                        
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownMore">
-                            <li><a class="dropdown-item" href="#">Manage Pages</a></li>
-                            <li><a class="dropdown-item" href="#">Your groups</a></li>
-                            <li><a class="dropdown-item" href="#">Manage ads</a></li>
-                            <li><a class="dropdown-item" href="#">Activity log</a></li>
-                            <li><a class="dropdown-item" href="#">News Feed Preferences</a></li>
-                            <li><a class="dropdown-item" href="#">Settings</a></li>
                             <li><a class="dropdown-item" href="logout.php">Log out</a></li>
                         </ul>
                     </li>

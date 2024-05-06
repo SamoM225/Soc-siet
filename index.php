@@ -32,13 +32,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
-if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
     $comment = $_POST['comment'];
     $postid = $_POST['postId'];
     $username = $_SESSION['username'];
-    if($post->uploadComment($postid, $comment, $username) === 1){
+    if ($post->uploadComment($postid, $comment, $username) === 1) {
         echo 'Comment added successfully';
-    }else{
+    } else {
         echo 'chyba';
     }
 }
@@ -52,6 +52,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
     <title>Facebook</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="style.css" />
     <script src="js/functions.js"></script>
 </head>
@@ -66,26 +67,30 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
     <div class="container">
         <div class="row">
             <div class="col-md-2">
-    <br />
-    <div class="accordion" id="friendListAccordion">
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingOne">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#friendListCollapse" aria-expanded="false" aria-controls="friendListCollapse">
-                    <img src="images/profile-default.png" class="rounded-circle" style="width: 22px; margin-right: 4px" /> Friends
-                </button>
-            </h2>
-            <div id="friendListCollapse" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#friendListAccordion">
-                <div class="accordion-body">
-                    <a class="dropdown-item" href="#">Friend 1</a>
-                    <a class="dropdown-item" href="#">Friend 2</a>
-                    <a class="dropdown-item" href="#">Friend 3</a>
-                    <hr>
-                    <a class="dropdown-item" href="#">See more...</a>
+                <br />
+                <div class="accordion" id="friendListAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#friendListCollapse" aria-expanded="false"
+                                aria-controls="friendListCollapse">
+                                <img src="images/profile-default.png" class="rounded-circle"
+                                    style="width: 22px; margin-right: 4px" /> Friends
+                            </button>
+                        </h2>
+                        <div id="friendListCollapse" class="accordion-collapse collapse" aria-labelledby="headingOne"
+                            data-bs-parent="#friendListAccordion">
+                            <div class="accordion-body">
+                                <a class="dropdown-item" href="#">Friend 1</a>
+                                <a class="dropdown-item" href="#">Friend 2</a>
+                                <a class="dropdown-item" href="#">Friend 3</a>
+                                <hr>
+                                <a class="dropdown-item" href="#">See more...</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
             <div class="col-md-6">
                 <br />
@@ -130,9 +135,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
                 include_once 'functions.php';
                 include_once 'db_inc.php';
                 $posts = fetchPostsFromDatabase($pdo);
-                    foreach ($posts as $post) {
-                        renderPost($post);
-                    }
+                foreach ($posts as $post) {
+                    renderPost($post);
+                }
                 $conn = null;
                 ?>
 
