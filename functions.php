@@ -24,7 +24,7 @@ function renderComment($comment, $date)
 {
     echo '<div style="font-size: 10px; color: gray">
                         <img src="' . $comment['pfp'] . '" class="rounded-circle" style="width: 40px; margin-right: 4px"/>
-                        <a href="#"><b>' . $comment['commenter_name'] . '</b><br></a> <span style="font-size: 16px">' . $comment['comment_text'] . '</span>
+                        <a href="#"><b>' . $comment['account_name'] . '</b><br></a> <span style="font-size: 16px">' . $comment['comment_text'] . '</span>
                         <p style="opacity: 0.6">Posted at ' . $date . '</p>        
                     </div>';
 }

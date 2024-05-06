@@ -7,7 +7,7 @@ if($_SESSION['role'] != 'admin'){
     header('Location: index.php');
 }
 
-$post = new Post($pdo);
+$post = new Post();
 $account = new Account();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['account_id'])) {
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_post_id'])) {
             echo 'Post deleted';
         }
     }
-if($_SERVER['REQUEST_METHOD'] == 'POST'&& isset($_POST['delete_user_id'])) {
+if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_user_id'])) {
     $user_id = $_POST['delete_user_id'];
     if($account->deleteAccount($user_id) == False) {
         echo 'No such user exists';

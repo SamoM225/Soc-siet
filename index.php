@@ -35,8 +35,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
     $comment = $_POST['comment'];
     $postid = $_POST['postId'];
-    $username = $_SESSION['username'];
-    if ($post->uploadComment($postid, $comment, $username) === 1) {
+    $userid = $_SESSION['user_id'];
+    if ($post->uploadComment($postid, $comment, $userid) === 1) {
         echo 'Comment added successfully';
     } else {
         echo 'chyba';

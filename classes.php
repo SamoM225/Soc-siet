@@ -167,6 +167,21 @@ class Account
 
 		return $id;
 	}
+	public function renameUser($username, $oldUsername)
+	{
+		global $pdo;
+		try {
+			$sql = 'UPDATE accounts SET account_name = :username WHERE account_name = :oldUsername';
+			$stmt = $pdo->prepare($sql);
+			$stmt->bindValue(':username', $username, PDO::PARAM_STR);
+			$stmt->bindValue(':oldUsername', $oldUsername, PDO::PARAM_STR);
+			$stmt->execute();
+			return true;
+		} catch (PDOException $e) {
+			throw new Exception('Error renaming user: ' . $e->getMessage());
+		}
+	}
+
 }
 
 class Login
@@ -346,15 +361,15 @@ class Post
 		}
 	}
 
-	public function uploadComment($postid, $comment, $username)
+	public function uploadComment($postid, $comment, $userid)
 	{
 		global $pdo;
-		$sql = 'INSERT INTO comments (post_id, comment_text, commenter_name) VALUES (:postid, :comment, :username)';
+		$sql = 'INSERT INTO comments (post_id, comment_text, account_id) VALUES (:postid, :comment, :userid)';
 		try {
 			$stmt = $pdo->prepare($sql);
 			$stmt->bindParam(':postid', $postid, PDO::PARAM_INT);
 			$stmt->bindParam(':comment', $comment, PDO::PARAM_STR);
-			$stmt->bindParam(':username', $username, PDO::PARAM_STR);
+			$stmt->bindParam(':userid', $userid, PDO::PARAM_STR);
 			$stmt->execute();
 			return 1;
 		} catch (PDOException $e) {
@@ -365,16 +380,16 @@ class Post
 	{
 		global $pdo;
 		try {
-			$sql = 'SELECT c.commenter_name, c.comment_text, c.comment_date, a.pfp
+			$sql = 'SELECT a.account_name, c.comment_text, c.comment_date, a.pfp
 			FROM comments c
-			JOIN accounts a ON c.commenter_name = a.account_name
+			JOIN accounts a ON c.account_id = a.account_id
 			WHERE post_id = :postid';
 			$stmt = $pdo->prepare($sql);
 			$stmt->bindParam(':postid', $postid, PDO::PARAM_INT);
 			$stmt->execute();
 			$result = $stmt->fetchAll();
 			return $result;
-		}catch(PDOException $e){
+		} catch (PDOException $e) {
 			echo 'Error: ' . $e->getMessage();
 		}
 	}
