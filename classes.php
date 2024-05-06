@@ -229,17 +229,17 @@ class Login
 }
 class Post
 {
-	private $conn;
-	public function __construct($conn)
+	public function __construct()
 	{
-		$this->conn = $conn;
+
 	}
 
 	public function createPost($userid, $description, $img)
 	{
+		global $pdo;
 		try {
 			$sql = 'INSERT INTO posts (account_id, description, img) VALUES (?, ?, ?)';
-			$stmt = $this->conn->prepare($sql);
+			$stmt = $pdo->prepare($sql);
 			$stmt->bindValue(1, $userid, PDO::PARAM_INT);
 			$stmt->bindValue(2, $description, PDO::PARAM_STR);
 			$stmt->bindValue(3, $img, PDO::PARAM_STR);
@@ -251,9 +251,10 @@ class Post
 	}
 	public function updatePost($id, $description, $img)
 	{
+		global $pdo;
 		try {
 			$sql = 'UPDATE posts SET description = :description, image = :img WHERE id = :id';
-			$stmt = $this->conn->prepare($sql);
+			$stmt = $pdo->prepare($sql);
 			$stmt->bindValue(':id', $id);
 			$stmt->bindValue(':description', $description);
 			$stmt->bindValue(':img', $img);
@@ -264,8 +265,9 @@ class Post
 	}
 	public function deletePost($id)
 	{
+		global $pdo;
 		$sql = 'SELECT * FROM posts WHERE post_id=:id';
-		$stmt = $this->conn->prepare($sql);
+		$stmt = $pdo->prepare($sql);
 		$stmt->bindValue(':id', $id, PDO::PARAM_INT);
 		$stmt->execute();
 
@@ -273,7 +275,7 @@ class Post
 
 		if ($post) {
 			$sql = 'DELETE FROM posts WHERE post_id=:id';
-			$stmt = $this->conn->prepare($sql);
+			$stmt = $pdo->prepare($sql);
 			$stmt->bindValue(':id', $id, PDO::PARAM_INT);
 			$stmt->execute();
 			return true;
@@ -296,14 +298,15 @@ class Post
 	}
 	public function getUserPosts($identifier)
 	{
+		global $pdo;
 		$info = array();
 		if (is_numeric($identifier)) {
 			$query = 'SELECT posts.*, accounts.account_name FROM posts JOIN accounts ON posts.account_id = accounts.account_id WHERE posts.account_id = :id';
-			$stmt = $this->conn->prepare($query);
+			$stmt = $pdo->prepare($query);
 			$stmt->bindParam(':id', $identifier, PDO::PARAM_INT);
 		} else {
 			$query = 'SELECT posts.*, accounts.account_name FROM posts JOIN accounts ON posts.account_id = accounts.account_id WHERE accounts.account_name = :name';
-			$stmt = $this->conn->prepare($query);
+			$stmt = $pdo->prepare($query);
 			$stmt->bindParam(':name', $identifier, PDO::PARAM_STR);
 		}
 		$stmt->execute();
@@ -316,6 +319,7 @@ class Post
 
 	public function uploadPfp($file)
 	{
+		global $pdo;
 		$targetDir = "pfp/";
 		$fileName = uniqid() . '_' . basename($file['name']);
 		$targetFilePath = $targetDir . $fileName;
@@ -323,10 +327,10 @@ class Post
 		if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
 			try {
 				$query = 'UPDATE accounts SET pfp = :filepath WHERE account_id = :id';
-				$stmt = $this->conn->prepare($query);
+				$stmt = $pdo->prepare($query);
 				$stmt->bindParam(':filepath', $targetFilePath, PDO::PARAM_STR);
 				$stmt->bindParam(':id', $_SESSION['user_id'], PDO::PARAM_INT);
-				$stmt->execute() || die($this->conn->errorInfo()[2]);
+				$stmt->execute() || die($pdo->errorInfo()[2]);
 				$rowCount = $stmt->rowCount();
 
 				if ($rowCount > 0) {
@@ -344,9 +348,10 @@ class Post
 
 	public function uploadComment($postid, $comment, $username)
 	{
+		global $pdo;
 		$sql = 'INSERT INTO comments (post_id, comment_text, commenter_name) VALUES (:postid, :comment, :username)';
 		try {
-			$stmt = $this->conn->prepare($sql);
+			$stmt = $pdo->prepare($sql);
 			$stmt->bindParam(':postid', $postid, PDO::PARAM_INT);
 			$stmt->bindParam(':comment', $comment, PDO::PARAM_STR);
 			$stmt->bindParam(':username', $username, PDO::PARAM_STR);
@@ -354,6 +359,23 @@ class Post
 			return 1;
 		} catch (PDOException $e) {
 			echo "Error: " . $e->getMessage();
+		}
+	}
+	public function readComment($postid)
+	{
+		global $pdo;
+		try {
+			$sql = 'SELECT c.commenter_name, c.comment_text, c.comment_date, a.pfp
+			FROM comments c
+			JOIN accounts a ON c.commenter_name = a.account_name
+			WHERE post_id = :postid';
+			$stmt = $pdo->prepare($sql);
+			$stmt->bindParam(':postid', $postid, PDO::PARAM_INT);
+			$stmt->execute();
+			$result = $stmt->fetchAll();
+			return $result;
+		}catch(PDOException $e){
+			echo 'Error: ' . $e->getMessage();
 		}
 	}
 }

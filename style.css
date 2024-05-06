@@ -322,3 +322,37 @@ span{
     margin-left: 28px;
     margin-top: 3px;
 }
+.chatbox {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 300px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.chatbox-header {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.chatbox-header .close-btn {
+    float: right;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.chatbox-content {
+    padding: 10px;
+    height: 200px;
+    overflow-y: auto;
+}
+
+.chatbox-footer {
+    padding: 10px;
+    border-top: 1px solid #ccc;
+}

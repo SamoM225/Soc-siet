@@ -1,4 +1,8 @@
 <?php
+include_once 'classes.php';
+include_once 'db_inc.php';
+
+
 function fetchPostsFromDatabase($conn)
 {
     $posts = array();
@@ -16,55 +20,72 @@ function fetchPostsFromDatabase($conn)
     return $posts;
 }
 
+function renderComment($comment, $date)
+{
+    echo '<div style="font-size: 10px; color: gray">
+                        <img src="' . $comment['pfp'] . '" class="rounded-circle" style="width: 40px; margin-right: 4px"/>
+                        <a href="#"><b>' . $comment['commenter_name'] . '</b><br></a> <span style="font-size: 16px">' . $comment['comment_text'] . '</span>
+                        <p style="opacity: 0.6">Posted at ' . $date . '</p>        
+                    </div>';
+}
+
 function renderPost($post)
 {
-    if ($post['account_enabled']===1){
-    echo '<div class="row">
+    $comment = new Post();
+    $comments = $comment->readComment($post['post_id']);
+
+
+    if ($post['account_enabled'] === 1) {
+        echo '<div class="row">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-body">
                     <div style="font-size: 14px; color: gray">
                         <img src="' . $post['pfp'] . '" class="rounded-circle" style="width: 40px; margin-right: 4px"/>
-                        <a href="#"><b>' . $post['account_name'] . '</b></a> shared a <a href="#">link</a> in the group <a href="#">Lorem ipsum dolor sit</a>        
+                        <a href="#"><b>' . $post['account_name'] . '</b></a> shared a post        
                     </div>
                     <br/>
                     <div><span>' . $post['description'] . '</span></div>';
-    if (file_exists($post['img'])) {
-        echo '<img src="' . $post['img'] . '" style="width: 100%;"/><br/><br/>';
-    }
+        if (file_exists($post['img'])) {
+            echo '<img src="' . $post['img'] . '" style="width: 100%;"/><br/><br/>';
+        }
 
-    echo '<a href="#"></a><br/>
-          
+        echo '<hr/>
+                <button class="btn btn-outline-light" type="button" data-bs-toggle="collapse" data-bs-target="#commentsCollapse' . $post['post_id'] . '" aria-expanded="false" aria-controls="commentsCollapse' . $post['post_id'] . '">
+                    <i class="bi bi-chat-square"></i>
+                    
+                    <span>Comment</span>
+                </button>
+                
                 </div>
-                <div class="row">
-                    <div class="col-md-12">
+                
+                
+                <div class="collapse" id="commentsCollapse' . $post['post_id'] . '">
+                        
+                    <div class="card card-body">
+                    ';
+        foreach ($comments as $comment) {
+            $commentTimestamp = strtotime($comment['comment_date']);
+            $timeDifference = time() - $commentTimestamp;
+            $difference = '';
+            if ($timeDifference < 60) {
+                $difference = 'Just now';
+            } elseif ($timeDifference < 3600) {
+                $difference = floor($timeDifference / 60) . ' minutes ago';
+            } elseif ($timeDifference < 86400) {
+                $difference = floor($timeDifference / 3600) . ' hours ago';
+            } else {
+                $difference = floor($timeDifference / 86400) . ' days ago';
+            }
+            renderComment($comment, $difference);
+        }
+        echo '
+                        </div>
                     </div>
-                </div>
-                <hr/>
-                <div class="row" style="margin-center: 0px;">
-                    <div class="col-md-3">
-                    <form id="likeForm" method="POST" action="like_post.php">
-                    <input type="hidden" name="postId" value="' . $post['post_id'] . '">
-                    <button type="button" class="fc-btn fc-btn-white" onclick="likePost(' . $post['post_id'] . ')">
-                        <div class="fc-icon">
-                            <label>Like</label>
-                        </div>                                    
-                    </button>
-                </form>                 
-                </div>
-                    <div class="col-md-3">
-                        <button class="fc-btn fc-btn-white">
-                            <div class="fc-icon fc-icon-comentar">
-                                <label>Comment</label>
-                            </div>                                    
-                        </button>
-                    </div>
-                </div>
-                <br/>
-            </div> 
-        </div>
-    </div>';
-    echo '
+                </div> 
+            </div>
+        </div>';
+        echo '
     <form action="" method="POST" class="mb-3">
         <div class="input-group">
             <input type="text" class="form-control" name="comment" placeholder="Write your comment here" rows="1"></textarea>
@@ -73,9 +94,7 @@ function renderPost($post)
         <input type="hidden" name="postId" value="' . $post['post_id'] . '">
     </form>
 ';
-
-
-
+    }
 }
 
-}
+

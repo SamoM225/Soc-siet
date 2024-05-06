@@ -6,7 +6,7 @@ include_once 'verification.php';
 
 $login = new Login($pdo);
 $user = new Account();
-$post = new Post($pdo);
+$post = new Post();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!empty($_POST['description'])) {
@@ -66,46 +66,27 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
     <div class="container">
         <div class="row">
             <div class="col-md-2">
-                <br />
-                <div class="list-group">
-                    <a href="#" class="list-group-item fc-list-group-item list-group-item-action">
-                        <img src="images/profile-default.png" class="rounded-circle"
-                            style="width: 22px; margin-right: 4px" />
-                    </a>
-                    <a href="#" class="list-group-item fc-list-group-item list-group-item-action">
-                        <div class="fc-icon fc-icon-feeds"><label
-                                style="width: 110px; font-size: 12px; margin-left: 28px;">News Feed</label></div>
-                    </a>
-                    <a href="#" class="list-group-item fc-list-group-item list-group-item-action">
-                        <div class="fc-icon fc-icon-messenger"><span>Messenger</span></div>
-                    </a>
-                    <a href="#" class="list-group-item fc-list-group-item list-group-item-action">
-                        <div class="fc-icon fc-icon-watch"><span>Watch</span></div>
-                    </a>
-                    <a href="#" class="list-group-item fc-list-group-item list-group-item-action">
-                        <div class="fc-icon fc-icon-marketplace"><span>Marketplace</span></div>
-                    </a>
-                </div>
-                <label class="fc-label">Explore</label>
-                <div class="list-group">
-                    <a href="#" class="list-group-item fc-list-group-item list-group-item-action">
-                        <div class="fc-icon fc-icon-lembrancas"><span>Memories</span></div>
-                    </a>
-                    <a href="#" class="list-group-item fc-list-group-item list-group-item-action">
-                        <div class="fc-icon fc-icon-salvos"><span>Saved</span></div>
-                    </a>
-                    <a href="#" class="list-group-item fc-list-group-item list-group-item-action">
-                        <div class="fc-icon fc-icon-grupos"><span>Groups</span></div>
-                    </a>
-                    <a href="#" class="list-group-item fc-list-group-item list-group-item-action">
-                        <div class="fc-icon fc-icon-paginas"><span>Pages</span></div>
-                    </a>
-                    <a href="#" class="list-group-item fc-list-group-item list-group-item-action">
-                        <div class="fc-icon fc-icon-eventos"><span>Events</span></div>
-                    </a>
-                    <a href="#" class="list-group-item fc-list-group-item list-group-item-action">See more...</a>
+    <br />
+    <div class="accordion" id="friendListAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#friendListCollapse" aria-expanded="false" aria-controls="friendListCollapse">
+                    <img src="images/profile-default.png" class="rounded-circle" style="width: 22px; margin-right: 4px" /> Friends
+                </button>
+            </h2>
+            <div id="friendListCollapse" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#friendListAccordion">
+                <div class="accordion-body">
+                    <a class="dropdown-item" href="#">Friend 1</a>
+                    <a class="dropdown-item" href="#">Friend 2</a>
+                    <a class="dropdown-item" href="#">Friend 3</a>
+                    <hr>
+                    <a class="dropdown-item" href="#">See more...</a>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
             <div class="col-md-6">
                 <br />
                 <div class="row">
