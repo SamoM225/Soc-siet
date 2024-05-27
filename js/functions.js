@@ -1,31 +1,24 @@
-function likePost(postId) {
-    var likeButton = document.getElementById("likeButton");
-    if (likeButton) {
-        likeButton.disabled = true;
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    var forms = document.querySelectorAll('.ajax-form');
 
-    var xhr = new XMLHttpRequest();
+    forms.forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
 
-    var formData = new FormData();
-    formData.append("postId", postId);
+            var formData = new FormData(form);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', form.action, true);
 
-    xhr.open("POST", "like_post.php", true);
-    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-            if (xhr.status === 200) {
-                var likeCountSpan = document.getElementById("likeCount");
-                if (likeCountSpan) {
-                    var currentLikes = parseInt(likeCountSpan.innerText);
-                    likeCountSpan.innerText = currentLikes + 1;
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    alert(xhr.responseText);
+                } else {
+                    alert('Request failed. Status: ' + xhr.status);
                 }
-            } else {
-                alert("An error occurred while processing the request.");
-            }
-            if (likeButton) {
-                likeButton.disabled = false;
-            }
-        }
-    };
-    xhr.send(formData);
-}
+            };
+
+            xhr.send(formData);
+        });
+    });
+});
+

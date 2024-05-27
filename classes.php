@@ -68,10 +68,10 @@ class Account
 		$query = 'UPDATE accounts SET account_enabled = 0 WHERE (account_id = :id)';
 
 		try {
-			$stmt = $pdo->prepare($query);
-			$stmt->bindValue(':id', $id, PDO::PARAM_INT);
-			$stmt->execute();
-			return ($stmt->rowCount() > 0) ? True : False;
+			$sql = $pdo->prepare($query);
+			$sql->bindValue(':id', $id, PDO::PARAM_INT);
+			$sql->execute();
+			return ($sql->rowCount() > 0) ? True : False;
 		} catch (PDOException $e) {
 			throw new Exception('Database query error');
 		}
@@ -172,17 +172,208 @@ class Account
 		global $pdo;
 		try {
 			$sql = 'UPDATE accounts SET account_name = :username WHERE account_name = :oldUsername';
-			$stmt = $pdo->prepare($sql);
-			$stmt->bindValue(':username', $username, PDO::PARAM_STR);
-			$stmt->bindValue(':oldUsername', $oldUsername, PDO::PARAM_STR);
-			$stmt->execute();
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':username', $username, PDO::PARAM_STR);
+			$sql->bindValue(':oldUsername', $oldUsername, PDO::PARAM_STR);
+			$sql->execute();
 			return true;
 		} catch (PDOException $e) {
 			throw new Exception('Error renaming user: ' . $e->getMessage());
 		}
 	}
+	public function randomPeople($accountid)
+	{
+		global $pdo;
+		try {
+			$sql = 'SELECT a.account_name, a.pfp, a.account_id 
+					FROM accounts a 
+					LEFT JOIN friend_list f ON (a.account_id = f.account_id AND f.friend_id = :accountid) 
+						OR (a.account_id = f.friend_id AND f.account_id = :accountid)
+					WHERE a.account_id != :accountid AND f.account_id IS NULL
+					ORDER BY RAND() LIMIT 3';
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':accountid', $accountid, PDO::PARAM_INT);
+			$sql->execute();
+			$result = $sql->fetchAll(PDO::FETCH_ASSOC);
+			return $result;
+		} catch (PDOException $e) {
+			throw new Exception('Chyba vyberania náhodnych profilov: ' . $e->getMessage());
+		}
+	}
 
+	public function requestFriend($accountid, $friendid, $status)
+	{
+		global $pdo;
+		try {
+			$checkSql = 'SELECT COUNT(*) FROM friend_list 
+						 WHERE (account_id = :accountid AND friend_id = :friendid) /*Protekcia proti duplicite*/
+							OR (account_id = :friendid AND friend_id = :accountid)'; //Ak A_ID = 1 a F_ID = 2, tak F_ID nemôže už požiadať A_ID 
+			$checkSql = $pdo->prepare($checkSql);
+			$checkSql->bindValue(':accountid', $accountid, PDO::PARAM_INT);
+			$checkSql->bindValue(':friendid', $friendid, PDO::PARAM_INT);
+			$checkSql->execute();
+			$count = $checkSql->fetchColumn();
+
+			if ($count > 0) {
+				return false;
+			} else {
+				$sql = 'INSERT INTO friend_list (account_id, friend_id, status) VALUES (:accountid, :friendid, :status)';
+				$sql = $pdo->prepare($sql);
+				$sql->bindValue(':accountid', $accountid, PDO::PARAM_INT);
+				$sql->bindValue(':friendid', $friendid, PDO::PARAM_INT);
+				$sql->bindValue(':status', $status, PDO::PARAM_STR);
+				$sql->execute();
+				//výmena accountid-friendid pre vytvorenie 2 záznamov namiesto jedného
+				//pre vyberanie priateľov, budú obidve strany mať nastavený záznam
+				//jednoduchšie manažovanie friendlistu v PHP
+				$sql = 'INSERT INTO friend_list (friend_id, account_id, status) VALUES (:accountid, :friendid, "Pending")';
+				$sql = $pdo->prepare($sql);
+				$sql->bindValue(':accountid', $accountid, PDO::PARAM_INT);
+				$sql->bindValue(':friendid', $friendid, PDO::PARAM_INT);
+				$sql->execute();
+
+				return true;
+			}
+		} catch (PDOException $e) {
+			throw new Exception('Chyba requestFriend: ' . $e->getMessage());
+		}
+	}
+	public function friendRequests($accountid)
+	{
+		global $pdo;
+		try {
+			$sql = 'SELECT f.account_id, a.account_name, f.friend_id 
+				FROM friend_list f 
+				JOIN accounts a ON f.account_id = a.account_id
+				WHERE f.account_id != :accountid AND f.friend_id = :accountid AND f.status = "Request"';
+			$stmt = $pdo->prepare($sql);
+			$stmt->bindValue(':accountid', $accountid, PDO::PARAM_INT);
+			$stmt->execute();
+			$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			return $result;
+		} catch (PDOException $e) {
+			throw new Exception('Chyba vyberanie friend requests: ' . $e->getMessage());
+		}
+	}
+	public function addFriend($accountid, $friendid)
+	{
+		global $pdo;
+		try {
+			$sql = 'UPDATE friend_list SET status = "Accepted" 
+                WHERE (account_id = :accountid AND friend_id = :friendid)
+                OR (friend_id = :accountid AND account_id = :friendid)';
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':accountid', $accountid, PDO::PARAM_INT);
+			$sql->bindValue(':friendid', $friendid, PDO::PARAM_INT);
+			$sql->execute();
+
+			return true;
+		} catch (PDOException $e) {
+			throw new Exception('Error in addFriend: ' . $e->getMessage());
+		}
+	}
+
+	public function friendList($accountid)
+	{
+		global $pdo;
+		try {
+			$sql = 'SELECT 
+                    a.account_name AS friend_name,
+                    a.pfp AS friend_pfp,
+                    f.friend_id AS friend_id
+                FROM friend_list f 
+                LEFT JOIN accounts a ON f.friend_id = a.account_id
+                WHERE f.account_id = :accountid AND f.status = "Accepted"';
+			$stmt = $pdo->prepare($sql);
+			$stmt->bindValue(':accountid', $accountid, PDO::PARAM_INT);
+			$stmt->execute();
+			$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			return $result;
+		} catch (PDOException $e) {
+			throw new Exception('Error in friendList: ' . $e->getMessage());
+		}
+	}
+
+	public function isFriend($accountid, $friendid)
+	{
+		global $pdo;
+		try {
+			$sql = 'SELECT * FROM friend_list WHERE (account_id = :accountid AND status = "Accepted" AND friend_id = :friendid)';
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':accountid', $accountid, PDO::PARAM_INT);
+			$sql->bindValue(':friendid', $friendid, PDO::PARAM_INT);
+			$sql->execute();
+			$count = $sql->fetchColumn();
+			if ($count > 0) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (PDOException $e) {
+			throw new Exception('Chyba v isFriend: ' . $e->getMessage());
+		}
+	}
+	public function giveAdminRights($userid)
+	{
+		global $pdo;
+		try {
+			$sql = 'SELECT COUNT(*) FROM accounts WHERE account_id = :userid';
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':userid', $userid, PDO::PARAM_INT);
+			$sql->execute();
+			$count = $sql->fetchColumn();
+			if ($count > 0) {
+				$sql = 'UPDATE accounts SET role = "admin" WHERE account_id = :userid';
+				$sql = $pdo->prepare($sql);
+				$sql->bindValue(':userid', $userid, PDO::PARAM_INT);
+				$sql->execute();
+				echo 'admin rights given';
+			} else {
+				echo 'Neexistuje user';
+			}
+		} catch (PDOException $e) {
+			throw new Exception('Chyba v giveAdminRights: ' . $e->getMessage());
+		}
+	}
+	public function activateUser($userid)
+	{
+		global $pdo;
+		try {
+			$sql = 'UPDATE accounts SET account_enabled = 1 WHERE account_id = :userid';
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':userid', $userid, PDO::PARAM_INT);
+			$sql->execute();
+			echo 'user activated';
+		} catch (PDOException $e) {
+			throw new Exception('Chyba v activateUser: ' . $e->getMessage());
+		}
+	}
+	public function checkAndEditPassword($accountid, $old_passwd, $new_passwd)
+	{
+		global $pdo;
+		try {
+			$sql = 'SELECT account_passwd FROM accounts WHERE account_id = :accountid';
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':accountid', $accountid, PDO::PARAM_STR);
+			$sql->execute();
+			$result = $sql->fetch();
+			if ($result != NULL && password_verify($old_passwd, $result['account_passwd'])) {
+				$password = password_hash($new_passwd, PASSWORD_DEFAULT);
+				$sql = 'UPDATE accounts SET account_passwd = :password WHERE account_id = :userid';
+				$sql = $pdo->prepare($sql);
+				$sql->bindValue(':password', $password, PDO::PARAM_STR);
+				$sql->bindValue(':userid', $_SESSION['user_id'], PDO::PARAM_INT);
+				$sql->execute();
+				return true;
+			} else {
+				return false;
+			}
+		} catch (PDOException $e) {
+			throw new Exception('Chyba v checkAndEditPassword: ' . $e->getMessage());
+		}
+	}
 }
+
 
 class Login
 {
@@ -194,10 +385,10 @@ class Login
 	public function login($username, $password)
 	{
 		$sql = "SELECT * FROM accounts WHERE account_name=:username";
-		$stmt = $this->conn->prepare($sql);
-		$stmt->bindValue(':username', $username, PDO::PARAM_STR);
-		$stmt->execute();
-		$result = $stmt->fetch();
+		$sql = $this->conn->prepare($sql);
+		$sql->bindValue(':username', $username, PDO::PARAM_STR);
+		$sql->execute();
+		$result = $sql->fetch();
 
 		if ($result) {
 			if (password_verify($password, $result['account_passwd'])) {
@@ -219,10 +410,10 @@ class Login
 	public function verifyCredentials($username, $password)
 	{
 		$sql = 'SELECT account_name, account_passwd FROM accounts WHERE account_name = :username';
-		$stmt = $this->conn->prepare($sql);
-		$stmt->bindValue(':username', $username, PDO::PARAM_STR);
-		$stmt->execute();
-		$result = $stmt->fetch();
+		$sql = $this->conn->prepare($sql);
+		$sql->bindValue(':username', $username, PDO::PARAM_STR);
+		$sql->execute();
+		$result = $sql->fetch();
 
 		if ($result && password_verify($password, $result['account_passwd'])) {
 			return true;
@@ -235,10 +426,10 @@ class Login
 	public function verifyAccount($username)
 	{
 		$sql = 'SELECT account_enabled FROM accounts WHERE account_name = :username';
-		$stmt = $this->conn->prepare($sql);
-		$stmt->bindValue(':username', $username, PDO::PARAM_STR);
-		$stmt->execute();
-		$result = $stmt->fetch();
+		$sql = $this->conn->prepare($sql);
+		$sql->bindValue(':username', $username, PDO::PARAM_STR);
+		$sql->execute();
+		$result = $sql->fetch();
 		return $result['account_enabled'];
 	}
 }
@@ -254,11 +445,11 @@ class Post
 		global $pdo;
 		try {
 			$sql = 'INSERT INTO posts (account_id, description, img) VALUES (?, ?, ?)';
-			$stmt = $pdo->prepare($sql);
-			$stmt->bindValue(1, $userid, PDO::PARAM_INT);
-			$stmt->bindValue(2, $description, PDO::PARAM_STR);
-			$stmt->bindValue(3, $img, PDO::PARAM_STR);
-			$result = $stmt->execute();
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(1, $userid, PDO::PARAM_INT);
+			$sql->bindValue(2, $description, PDO::PARAM_STR);
+			$sql->bindValue(3, $img, PDO::PARAM_STR);
+			$result = $sql->execute();
 			return $result;
 		} catch (Exception $e) {
 			echo '<p> Error!' . $e . '</p>';
@@ -269,11 +460,11 @@ class Post
 		global $pdo;
 		try {
 			$sql = 'UPDATE posts SET description = :description, image = :img WHERE id = :id';
-			$stmt = $pdo->prepare($sql);
-			$stmt->bindValue(':id', $id);
-			$stmt->bindValue(':description', $description);
-			$stmt->bindValue(':img', $img);
-			$stmt->execute();
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':id', $id);
+			$sql->bindValue(':description', $description);
+			$sql->bindValue(':img', $img);
+			$sql->execute();
 		} catch (Exception $e) {
 			echo '<p> Error!' . $e . '</p>';
 		}
@@ -282,17 +473,17 @@ class Post
 	{
 		global $pdo;
 		$sql = 'SELECT * FROM posts WHERE post_id=:id';
-		$stmt = $pdo->prepare($sql);
-		$stmt->bindValue(':id', $id, PDO::PARAM_INT);
-		$stmt->execute();
+		$sql = $pdo->prepare($sql);
+		$sql->bindValue(':id', $id, PDO::PARAM_INT);
+		$sql->execute();
 
-		$post = $stmt->fetch(PDO::FETCH_ASSOC);
+		$post = $sql->fetch(PDO::FETCH_ASSOC);
 
 		if ($post) {
 			$sql = 'DELETE FROM posts WHERE post_id=:id';
-			$stmt = $pdo->prepare($sql);
-			$stmt->bindValue(':id', $id, PDO::PARAM_INT);
-			$stmt->execute();
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':id', $id, PDO::PARAM_INT);
+			$sql->execute();
 			return true;
 		} else {
 			return false;
@@ -317,15 +508,15 @@ class Post
 		$info = array();
 		if (is_numeric($identifier)) {
 			$query = 'SELECT posts.*, accounts.account_name FROM posts JOIN accounts ON posts.account_id = accounts.account_id WHERE posts.account_id = :id';
-			$stmt = $pdo->prepare($query);
-			$stmt->bindParam(':id', $identifier, PDO::PARAM_INT);
+			$sql = $pdo->prepare($query);
+			$sql->bindParam(':id', $identifier, PDO::PARAM_INT);
 		} else {
 			$query = 'SELECT posts.*, accounts.account_name FROM posts JOIN accounts ON posts.account_id = accounts.account_id WHERE accounts.account_name = :name';
-			$stmt = $pdo->prepare($query);
-			$stmt->bindParam(':name', $identifier, PDO::PARAM_STR);
+			$sql = $pdo->prepare($query);
+			$sql->bindParam(':name', $identifier, PDO::PARAM_STR);
 		}
-		$stmt->execute();
-		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+		$sql->execute();
+		while ($row = $sql->fetch(PDO::FETCH_ASSOC)) {
 			$info[] = $row;
 		}
 
@@ -342,11 +533,11 @@ class Post
 		if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
 			try {
 				$query = 'UPDATE accounts SET pfp = :filepath WHERE account_id = :id';
-				$stmt = $pdo->prepare($query);
-				$stmt->bindParam(':filepath', $targetFilePath, PDO::PARAM_STR);
-				$stmt->bindParam(':id', $_SESSION['user_id'], PDO::PARAM_INT);
-				$stmt->execute() || die($pdo->errorInfo()[2]);
-				$rowCount = $stmt->rowCount();
+				$sql = $pdo->prepare($query);
+				$sql->bindParam(':filepath', $targetFilePath, PDO::PARAM_STR);
+				$sql->bindParam(':id', $_SESSION['user_id'], PDO::PARAM_INT);
+				$sql->execute() || die($pdo->errorInfo()[2]);
+				$rowCount = $sql->rowCount();
 
 				if ($rowCount > 0) {
 					return $targetFilePath;
@@ -366,11 +557,11 @@ class Post
 		global $pdo;
 		$sql = 'INSERT INTO comments (post_id, comment_text, account_id) VALUES (:postid, :comment, :userid)';
 		try {
-			$stmt = $pdo->prepare($sql);
-			$stmt->bindParam(':postid', $postid, PDO::PARAM_INT);
-			$stmt->bindParam(':comment', $comment, PDO::PARAM_STR);
-			$stmt->bindParam(':userid', $userid, PDO::PARAM_STR);
-			$stmt->execute();
+			$sql = $pdo->prepare($sql);
+			$sql->bindParam(':postid', $postid, PDO::PARAM_INT);
+			$sql->bindParam(':comment', $comment, PDO::PARAM_STR);
+			$sql->bindParam(':userid', $userid, PDO::PARAM_STR);
+			$sql->execute();
 			return 1;
 		} catch (PDOException $e) {
 			echo "Error: " . $e->getMessage();
@@ -384,10 +575,10 @@ class Post
 			FROM comments c
 			JOIN accounts a ON c.account_id = a.account_id
 			WHERE post_id = :postid';
-			$stmt = $pdo->prepare($sql);
-			$stmt->bindParam(':postid', $postid, PDO::PARAM_INT);
-			$stmt->execute();
-			$result = $stmt->fetchAll();
+			$sql = $pdo->prepare($sql);
+			$sql->bindParam(':postid', $postid, PDO::PARAM_INT);
+			$sql->execute();
+			$result = $sql->fetchAll();
 			return $result;
 		} catch (PDOException $e) {
 			echo 'Error: ' . $e->getMessage();

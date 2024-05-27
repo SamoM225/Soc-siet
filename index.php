@@ -8,42 +8,71 @@ $login = new Login($pdo);
 $user = new Account();
 $post = new Post();
 
+$randomppl = $user->randomPeople($_SESSION['user_id']);
+$friendrequests = $user->friendRequests($_SESSION['user_id']);
+$friendlist = $user->friendList($_SESSION['user_id']);
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!empty($_POST['description'])) {
         $description = $_POST['description'];
         $userId = $_SESSION['user_id'];
+        $imgPath = NULL;
+
         if (!empty($_FILES['picture']['tmp_name'])) {
             $imgPath = $post->uploadPicture($_FILES['picture']);
-            if ($imgPath) {
-                if ($post->createPost($userId, $description, $imgPath)) {
-                    echo "Post created successfully.";
-                } else {
-                    echo "Failed to create post.";
-                }
-            } else {
+            if (!$imgPath) {
                 echo "Failed to upload picture.";
+                exit;
             }
+        }
+
+        if ($post->createPost($userId, $description, $imgPath)) {
+            echo "Post created successfully.";
         } else {
-            if ($post->createPost($userId, $description, $imgPath = NULL)) {
-                echo "Post created successfully.";
+            echo "Failed to create post.";
+        }
+    }
+
+    if (isset($_POST['comment'])) {
+        $comment = $_POST['comment'];
+        $postid = $_POST['postId'];
+        $userid = $_SESSION['user_id'];
+
+        if ($post->uploadComment($postid, $comment, $userid) === 1) {
+            echo 'Comment added successfully';
+        } else {
+            echo 'Failed to add comment';
+        }
+    }
+
+    if (isset($_POST['request_friend'])) {
+        $userid = $_SESSION['user_id'];
+        $friendid = $_POST['friend_id'];
+        $status = 'Request';
+
+        if ($user->requestFriend($userid, $friendid, $status)) {
+            echo 'Friend request sent';
+        } else {
+            echo 'Error sending friend request';
+        }
+    }
+
+    if (isset($_POST['add_friend_id'])) {
+        $userid = $_SESSION['user_id'];
+        $friendid = $_POST['add_friend_id'];
+
+        try {
+            if ($user->addFriend($userid, $friendid)) {
+                echo 'Friend added';
             } else {
-                echo "Failed to create post.";
+                echo 'Error accepting friend';
             }
+        } catch (Exception $e) {
+            echo 'Error: ' . $e->getMessage();
         }
     }
 }
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
-    $comment = $_POST['comment'];
-    $postid = $_POST['postId'];
-    $userid = $_SESSION['user_id'];
-    if ($post->uploadComment($postid, $comment, $userid) === 1) {
-        echo 'Comment added successfully';
-    } else {
-        echo 'chyba';
-    }
-}
 ?>
-
 
 <!DOCTYPE html>
 <html>
@@ -54,7 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="style.css" />
-    <script src="js/functions.js"></script>
+
 </head>
 
 <body>
@@ -81,15 +110,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
                         <div id="friendListCollapse" class="accordion-collapse collapse" aria-labelledby="headingOne"
                             data-bs-parent="#friendListAccordion">
                             <div class="accordion-body">
-                                <a class="dropdown-item" href="#">Friend 1</a>
-                                <a class="dropdown-item" href="#">Friend 2</a>
-                                <a class="dropdown-item" href="#">Friend 3</a>
-                                <hr>
-                                <a class="dropdown-item" href="#">See more...</a>
+                                <?php foreach ($friendlist as $friend): ?>
+                                    <?php
+                                    $friend_pfp = !empty($friend['friend_pfp']) ? $friend['friend_pfp'] : 'images/profile-default.png';
+                                    $friend_pfp_style = 'width: 40px; height: 40px;';
+                                    ?>
+                                    <div class="friendlist-box">
+                                        <a class="dropdown-item" href="#">
+                                            <img src="<?php echo $friend_pfp; ?>" class="rounded-circle friendlist-img"
+                                                alt="Profile Picture" style="<?php echo $friend_pfp_style; ?>">
+                                            <?php echo $friend['friend_name']; ?>
+                                        </a>
+                                        <span class="medbr"></span>
+                                        <hr>
+                                        <span class="medbr"></span>
+                                    </div>
+                                <?php endforeach; ?>
+
                             </div>
                         </div>
                     </div>
                 </div>
+
             </div>
 
             <div class="col-md-6">
@@ -100,8 +142,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
                             <div class="card-header fc-card-header">
                                 Create post
                             </div>
-                            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST"
-                                enctype="multipart/form-data">
+                            <form id="ajax-form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>"
+                                method="POST" enctype="multipart/form-data">
                                 <div class="row">
                                     <div class="col-md-2" style="text-align: right">
                                         <img src="images/profile-default.png" class="rounded-circle"
@@ -150,48 +192,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
                         Friend requests
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-2" style="text-align: right">
-                                <img src="images/profile-default.png" class="rounded-circle"
-                                    style="width: 44px; margin-top: 10px" />
-                            </div>
-                            <div class="col-md-10">
-                                <div style="margin-top: 10px">
-                                    <a href="#">Lorem ipsum dolor</a><br />
-                                    <span>3 mutual friends</span><br />
-                                    <button class="fc-btn fc-btn-default">Confirm</button>
-                                    <button class="fc-btn fc-btn-default">Delete</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-2" style="text-align: right">
-                                <img src="images/profile-default.png" class="rounded-circle"
-                                    style="width: 44px; margin-top: 10px" />
-                            </div>
-                            <div class="col-md-10">
-                                <div style="margin-top: 10px">
-                                    <a href="#">Lorem ipsum dolor</a><br />
-                                    <span>10 mutual friends</span><br />
-                                    <button class="fc-btn fc-btn-default">Confirm</button>
-                                    <button class="fc-btn fc-btn-default">Delete</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-2" style="text-align: right">
-                                <img src="images/profile-default.png" class="rounded-circle"
-                                    style="width: 44px; margin-top: 10px" />
-                            </div>
-                            <div class="col-md-10">
-                                <div style="margin-top: 10px">
-                                    <a href="#">Lorem ipsum dolor</a><br />
-                                    <span>5 mutual friends</span><br />
-                                    <button class="fc-btn fc-btn-default">Confirm</button>
-                                    <button class="fc-btn fc-btn-default">Delete</button>
-                                </div>
-                            </div>
-                        </div>
+                        <?php
+                        if (!empty($friendrequests)) {
+                            foreach ($friendrequests as $friendrequest) {
+                                renderFriendRequest($friendrequest);
+                            }
+                        } else {
+                            echo "Žiadne žiadosti.";
+                        }
+                        ?>
                     </div>
                 </div>
                 <br />
@@ -200,32 +209,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
                         People you may know
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-2" style="text-align: right">
-                                <img src="images/profile-default.png" class="rounded-circle"
-                                    style="width: 44px; margin-top: 10px" />
-                            </div>
-                            <div class="col-md-10">
-                                <div style="margin-top: 10px">
-                                    <a href="#">Lorem ipsum dolor</a><br />
-                                    <button class="fc-btn fc-btn-default">Confirm</button>
-                                    <button class="fc-btn fc-btn-default">Delete</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-2" style="text-align: right">
-                                <img src="images/profile-default.png" class="rounded-circle"
-                                    style="width: 44px; margin-top: 10px" />
-                            </div>
-                            <div class="col-md-10">
-                                <div style="margin-top: 10px">
-                                    <a href="#">Lorem ipsum dolor</a><br />
-                                    <button class="fc-btn fc-btn-default">Confirm</button>
-                                    <button class="fc-btn fc-btn-default">Delete</button>
-                                </div>
-                            </div>
-                        </div>
+
+                        <?php
+                        if (!empty($randomppl)) {
+                            foreach ($randomppl as $guy) {
+                                renderPpl($guy);
+                            }
+                        } else {
+                            echo "Žiadny náhodný užívatelia.";
+                        }
+                        ?>
                     </div>
                 </div>
                 <br />
@@ -258,10 +251,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['comment'])) {
                 include 'footer.php'
                     ?>
             </div>
+            
         </div>
+        
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
+    <script src="js/functions.js"></script>
 
 </html>

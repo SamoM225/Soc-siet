@@ -50,7 +50,7 @@ body{
 .fc-icon {
     height:22px;
     width:22px;
-    background-image:url('icons.png');
+    background-image:url('images/icons.png');
 }
 
 .fc-icon-messenger {
@@ -92,14 +92,14 @@ body{
 .fc-icon-navbar {
     height:22px;
     width:26px;
-    background-image:url('icons.png');
+    background-image:url('images/icons.png');
     opacity: 0.6;
 }
 
 .fc-icon-dropdown {
     height: 18px;
     width: 18px;
-    background-image: url(icons.png);
+    background-image: url('images/icons.png');
     opacity: 0.6;
 }
 
@@ -355,4 +355,12 @@ span{
 .chatbox-footer {
     padding: 10px;
     border-top: 1px solid #ccc;
+}
+.medbr{
+    display: block;
+    margin-bottom: 0em;
+}
+
+.hm-btn{
+    padding-right: 2rem;
 }
