@@ -1,8 +1,8 @@
 <?php
 session_start();
-include_once 'classes.php';
-include_once 'db_inc.php';
-include_once 'verification.php';
+include_once '../includes/classes.php';
+include_once '../includes/db_inc.php';
+include_once '../includes/verification.php';
 
 $login = new Login($pdo);
 $user = new Account();
@@ -82,14 +82,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
 
 </head>
 
 <body>
 
     <?php
-    include 'header.php'
+    require_once '../includes/header.php'
         ?>
 
     </nav>
@@ -103,7 +103,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#friendListCollapse" aria-expanded="false"
                                 aria-controls="friendListCollapse">
-                                <img src="images/profile-default.png" class="rounded-circle"
+                                <img src="../assets/images/profile-default.png" class="rounded-circle"
                                     style="width: 22px; margin-right: 4px" /> Friends
                             </button>
                         </h2>
@@ -112,7 +112,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <div class="accordion-body">
                                 <?php foreach ($friendlist as $friend): ?>
                                     <?php
-                                    $friend_pfp = !empty($friend['friend_pfp']) ? $friend['friend_pfp'] : 'images/profile-default.png';
+                                    $friend_pfp = !empty($friend['friend_pfp']) ? $friend['friend_pfp'] : '../assets/images/profile-default.png';
                                     $friend_pfp_style = 'width: 40px; height: 40px;';
                                     ?>
                                     <div class="friendlist-box">
@@ -146,11 +146,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 method="POST" enctype="multipart/form-data">
                                 <div class="row">
                                     <div class="col-md-2" style="text-align: right">
-                                        <img src="images/profile-default.png" class="rounded-circle"
+                                        <img src="../assets/images/profile-default.png" class="rounded-circle"
                                             style="width: 44px; margin-top: 10px;">
                                     </div>
                                     <div class="col-md-10">
-                                        <?php echo '<textarea name="description" class="form-control" placeholder="What are you thinking,"' . $_SESSION['username'] . '></textarea>'; ?>
+                                        <?php echo '<textarea name="description" class="form-control" placeholder="What are you thinking, ' . $_SESSION['username'] . '"></textarea>'; ?>
                                     </div>
                                 </div>
                                 <hr>
@@ -174,13 +174,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <br />
                 <!--Vyberanie príspevkov a zobrazovanie na webstránke-->
                 <?php
-                include_once 'functions.php';
-                include_once 'db_inc.php';
-                $posts = fetchPostsFromDatabase($pdo);
+                require_once '../includes/functions.php';
+                $posts = $post->fetchPostsFromDatabase();
                 foreach ($posts as $post) {
                     renderPost($post);
                 }
-                $conn = null;
                 ?>
 
                 <br />
@@ -227,7 +225,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         Sponsored
                     </div>
                     <div class="card-body">
-                        <img src="images/banner-default.png" />
+                        <img src="../assets/images/banner-default.png" />
                         <br /><br />
                         <a href="#">Lorem ipsum dolor sit amet</a><br />
                         <span>
@@ -248,7 +246,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <br />
 
                 <?php
-                include 'footer.php'
+                include_once '../includes/footer.php';
                     ?>
             </div>
             

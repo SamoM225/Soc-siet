@@ -1,6 +1,6 @@
 <?php
-include_once 'classes.php';
-include_once 'db_inc.php';
+include_once '../includes/classes.php';
+include_once '../includes/db_inc.php';
 session_start();
 $account = new Account();
 $username = $password = $confirm_password = "";
@@ -42,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
-    <link rel="stylesheet" href="register.css">
+    <link rel="stylesheet" href="../assets/css/register.css">
 </head>
 
 <body>

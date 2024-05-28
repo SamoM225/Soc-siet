@@ -1,8 +1,8 @@
 <?php
 session_start();
 ini_set('display_errors', 1);
-include_once 'db_inc.php';
-include_once 'classes.php';
+require_once '../includes/db_inc.php';
+require_once '../includes/classes.php';
 
 $account =
     $login = new Login($pdo);
@@ -34,7 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Form</title>
-    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="../assets/css/login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
 </head>
 

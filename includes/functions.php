@@ -2,7 +2,7 @@
 include_once 'classes.php';
 include_once 'db_inc.php';
 
-
+/*
 function fetchPostsFromDatabase($conn)
 {
     $posts = array();
@@ -20,7 +20,7 @@ function fetchPostsFromDatabase($conn)
 
     return $posts;
 }
-
+*/
 function renderComment($comment, $date)
 {
     echo '<div style="font-size: 10px; color: gray">
@@ -54,7 +54,7 @@ function renderPost($post)
         }
 
         echo '<hr/>
-                <button class="btn btn-outline-light" type="button" data-bs-toggle="collapse" data-bs-target="#commentsCollapse' . $post['post_id'] . '" aria-expanded="false" aria-controls="commentsCollapse' . $post['post_id'] . '">
+                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#commentsCollapse' . $post['post_id'] . '" aria-expanded="false" aria-controls="commentsCollapse' . $post['post_id'] . '">
                     <i class="bi bi-chat-square"></i>
                     <span>Comment</span>
                 </button>
@@ -81,21 +81,23 @@ function renderPost($post)
             }
             renderComment($comment, $difference);
         }
+        
         echo '
                         </div>
-                    </div>
+                        <form id="ajax-form" action="' . htmlspecialchars($_SERVER["PHP_SELF"]) . '" method="POST" class="mb-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="comment" placeholder="Write your comment here" rows="1"></textarea>
+                            <button type="submit" class="btn btn-sm btn-primary">Submit</button>
+                        </div>
+                        <input type="hidden" name="postId" value="' . $post['post_id'] . '">
+                    </form>
+                    
+                        </div>
+                    
                 </div> 
             </div>
-        </div>';
-        echo '
-    <form id="ajax-form" action="" method="POST" class="mb-3">
-        <div class="input-group">
-            <input type="text" class="form-control" name="comment" placeholder="Write your comment here" rows="1"></textarea>
-            <button type="submit" class="btn btn-sm btn-primary">Submit</button>
-        </div>
-        <input type="hidden" name="postId" value="' . $post['post_id'] . '">
-    </form>
-';
+        </div><br>';
+    
     }
 }
 }
@@ -108,7 +110,7 @@ function renderPpl($guy)
     if (!empty($guy['pfp'])) {
         echo '<img src="' . $guy['pfp'] . '" class="rounded-circle" alt="" style="width: 44px; margin-top: 10px" />';
     } else {
-        echo '<img src="images/profile-default.png" class="rounded-circle" style="width: 44px; margin-top: 10px" />'; // Default icon
+        echo '<img src="../assets/images/profile-default.png" class="rounded-circle" style="width: 44px; margin-top: 10px" />'; // Default icon
     }
 
     echo '</div>
@@ -127,16 +129,16 @@ function renderFriendRequest($friend) {
     if($friend['account_id'] != $_SESSION['user_id']){
     echo '<div class="row">
               <div class="col-md-2" style="text-align: right">
-                  <img src="images/profile-default.png" class="rounded-circle" style="width: 44px; margin-top: 10px" />
+                  <img src="../assets/images/profile-default.png" class="rounded-circle" style="width: 44px; margin-top: 10px" />
               </div>
               <div class="col-md-10">
                   <div style="margin-top: 10px">
                       <a href="#">' . $friend['account_name'] . '</a><br />
-                      <form id="ajax-form" method="POST" action="">
+                      <form class="ajax-form" method="POST" action="' . htmlspecialchars($_SERVER["PHP_SELF"]) . '">
                           <input type="hidden" name="add_friend_id" value="' . $friend['account_id'] . '">
                           <button type="submit" name="accept_friend" class="fc-btn fc-btn-default">Confirm</button>
                       </form>
-                      <form id="ajax-form" method="POST" action="">
+                      <form class="ajax-form" method="POST" action="' . htmlspecialchars($_SERVER["PHP_SELF"]) . '">
                           <input type="hidden" name="delete_friend" value="' . $friend['account_id'] . '">
                           <button type="submit" class="fc-btn fc-btn-delete">Delete</button>
                       </form>

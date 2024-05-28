@@ -1,6 +1,6 @@
 <?php
 
 if(!isset($_SESSION['role'])) {
-    header('Location: login.php');
+    header('Location: ../public/login.php');
     exit();
 }

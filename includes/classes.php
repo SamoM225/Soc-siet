@@ -134,7 +134,7 @@ class Account
 			);
 		}
 		session_destroy();
-		header('Location: login.php');
+		header('Location: ../public/login.php');
 		exit;
 	}
 
@@ -205,14 +205,14 @@ class Account
 	{
 		global $pdo;
 		try {
-			$checkSql = 'SELECT COUNT(*) FROM friend_list 
+			$sql = 'SELECT COUNT(*) FROM friend_list 
 						 WHERE (account_id = :accountid AND friend_id = :friendid) /*Protekcia proti duplicite*/
 							OR (account_id = :friendid AND friend_id = :accountid)'; //Ak A_ID = 1 a F_ID = 2, tak F_ID nemôže už požiadať A_ID 
-			$checkSql = $pdo->prepare($checkSql);
-			$checkSql->bindValue(':accountid', $accountid, PDO::PARAM_INT);
-			$checkSql->bindValue(':friendid', $friendid, PDO::PARAM_INT);
-			$checkSql->execute();
-			$count = $checkSql->fetchColumn();
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':accountid', $accountid, PDO::PARAM_INT);
+			$sql->bindValue(':friendid', $friendid, PDO::PARAM_INT);
+			$sql->execute();
+			$count = $sql->fetchColumn();
 
 			if ($count > 0) {
 				return false;
@@ -246,10 +246,10 @@ class Account
 				FROM friend_list f 
 				JOIN accounts a ON f.account_id = a.account_id
 				WHERE f.account_id != :accountid AND f.friend_id = :accountid AND f.status = "Request"';
-			$stmt = $pdo->prepare($sql);
-			$stmt->bindValue(':accountid', $accountid, PDO::PARAM_INT);
-			$stmt->execute();
-			$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':accountid', $accountid, PDO::PARAM_INT);
+			$sql->execute();
+			$result = $sql->fetchAll(PDO::FETCH_ASSOC);
 			return $result;
 		} catch (PDOException $e) {
 			throw new Exception('Chyba vyberanie friend requests: ' . $e->getMessage());
@@ -284,10 +284,10 @@ class Account
                 FROM friend_list f 
                 LEFT JOIN accounts a ON f.friend_id = a.account_id
                 WHERE f.account_id = :accountid AND f.status = "Accepted"';
-			$stmt = $pdo->prepare($sql);
-			$stmt->bindValue(':accountid', $accountid, PDO::PARAM_INT);
-			$stmt->execute();
-			$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':accountid', $accountid, PDO::PARAM_INT);
+			$sql->execute();
+			$result = $sql->fetchAll(PDO::FETCH_ASSOC);
 			return $result;
 		} catch (PDOException $e) {
 			throw new Exception('Error in friendList: ' . $e->getMessage());
@@ -335,6 +335,18 @@ class Account
 			throw new Exception('Chyba v giveAdminRights: ' . $e->getMessage());
 		}
 	}
+	public function removeAdminRights($userid){
+		global $pdo;
+		try {
+			$sql = 'UPDATE accounts SET role = "user" WHERE account_id = :userid';
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':userid', $userid, PDO::PARAM_INT);
+			$sql->execute();
+			echo 'admin rights removed';
+		} catch (PDOException $e) {
+			throw new Exception('Chyba v removeAdminRights: ' . $e->getMessage());
+		}
+	}
 	public function activateUser($userid)
 	{
 		global $pdo;
@@ -372,7 +384,27 @@ class Account
 			throw new Exception('Chyba v checkAndEditPassword: ' . $e->getMessage());
 		}
 	}
+	public function getUserInfo($identifier)
+	{
+		global $pdo;
+		$info = array();
+		if (is_numeric($identifier)) {
+			$query = 'SELECT account_id, account_name, account_reg_time, role, pfp FROM accounts WHERE account_id = :id';
+			$sql = $pdo->prepare($query);
+			$sql->bindParam(':id', $identifier, PDO::PARAM_INT);
+		} else {
+			$query = 'SELECT account_id, account_name, account_reg_time, role, pfp FROM accounts WHERE account_name = :name';
+			$sql = $pdo->prepare($query);
+			$sql->bindParam(':name', $identifier, PDO::PARAM_STR);
+		}
+		$sql->execute();
+		while ($row = $sql->fetch(PDO::FETCH_ASSOC)) {
+			$info[] = $row;
+		}
+		return $info;
+	}
 }
+
 
 
 class Login
@@ -491,7 +523,7 @@ class Post
 	}
 	public function uploadPicture($file)
 	{
-		$targetDir = "uploads/";
+		$targetDir = "../assets/uploads/";
 		$fileName = uniqid() . '_' . basename($file['name']);
 
 		$targetFilePath = $targetDir . $fileName;
@@ -507,7 +539,7 @@ class Post
 		global $pdo;
 		$info = array();
 		if (is_numeric($identifier)) {
-			$query = 'SELECT posts.*, accounts.account_name FROM posts JOIN accounts ON posts.account_id = accounts.account_id WHERE posts.account_id = :id';
+			$query = 'SELECT posts.*, accounts.account_id, accounts.account_name FROM posts JOIN accounts ON posts.account_id = accounts.account_id WHERE posts.account_id = :id';
 			$sql = $pdo->prepare($query);
 			$sql->bindParam(':id', $identifier, PDO::PARAM_INT);
 		} else {
@@ -526,7 +558,7 @@ class Post
 	public function uploadPfp($file)
 	{
 		global $pdo;
-		$targetDir = "pfp/";
+		$targetDir = "../assets/pfp/";
 		$fileName = uniqid() . '_' . basename($file['name']);
 		$targetFilePath = $targetDir . $fileName;
 
@@ -540,6 +572,7 @@ class Post
 				$rowCount = $sql->rowCount();
 
 				if ($rowCount > 0) {
+					$_SESSION['pfp'] = $targetFilePath;
 					return $targetFilePath;
 				}
 			} catch (PDOException $e) {
@@ -584,4 +617,25 @@ class Post
 			echo 'Error: ' . $e->getMessage();
 		}
 	}
+	public function fetchPostsFromDatabase()
+	{
+		global $pdo;
+		$posts = array();
+		$sql = "SELECT p.post_id, p.account_id, u.account_name, u.pfp, p.description, p.img, u.account_enabled
+            FROM posts p
+            INNER JOIN accounts u ON p.account_id = u.account_id
+            ORDER BY p.post_id DESC";
+		$sql = $pdo->prepare($sql);
+		$sql->execute();
+		if ($sql->rowCount() > 0) {
+			while ($row = $sql->fetch(PDO::FETCH_ASSOC)) {
+				$posts[] = $row;
+			}
+		}
+
+		return $posts;
+	}
+
+
+
 }
