@@ -403,6 +403,18 @@ class Account
 		}
 		return $info;
 	}
+	public function removeComment($comment){
+		global $pdo;
+		try{
+			$sql = 'DELETE FROM comments WHERE comment_id = :comment';
+			$sql = $pdo->prepare($sql);
+			$sql->bindValue(':comment', $comment, PDO::PARAM_INT);
+			$sql->execute();
+			return true;
+		}catch(PDOException $e){
+			throw new Exception('Chyba v deleteUser: ' . $e->getMessage());
+		}
+	}
 }
 
 

@@ -55,6 +55,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo 'Admin rights removed';
         }
     }
+    if(isset($_POST['remove_user'])){
+        $comment = $_POST['remove_user'];
+        if($account->removeComment($comment)){
+            echo 'Komentar odstraneny';
+        }
+    }
 }
 ?>
 
@@ -127,6 +133,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <form id="ajax-form" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
                     <label for="remove_admin" class="form-control">Remove Admin Rights:</label>
                     <input type="text" class="form-control" name="remove_admin" rows="1" placeholder="Admin ID:">
+                    <button type="submit" class="btn btn-danger"
+                        style="height: 40px;padding: 8px 16px;width: 9rem;margin-top: 1rem;">Remove admin</button>
+                </form>
+            </div>
+            <div class="col-md-3">
+                <form id="ajax-form" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
+                    <label for="remove_comment" class="form-control">Remove user:</label>
+                    <input type="text" class="form-control" name="remove_comment" rows="1" placeholder="User ID:">
                     <button type="submit" class="btn btn-danger"
                         style="height: 40px;padding: 8px 16px;width: 9rem;margin-top: 1rem;">Remove admin</button>
                 </form>
