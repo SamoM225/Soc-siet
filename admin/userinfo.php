@@ -51,14 +51,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     if (isset($_POST['remove_admin'])) {
         $user_id = $_POST['remove_admin'];
-        if ($acount->removeAdminRights($user_id)) {
+        if ($account->removeAdminRights($user_id)) {
             echo 'Admin rights removed';
         }
     }
     if(isset($_POST['remove_user'])){
         $comment = $_POST['remove_user'];
         if($account->removeComment($comment)){
-            echo 'Komentar odstraneny';
+            echo 'Komentar odstraneny0';
         }
     }
 }
@@ -139,10 +139,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             <div class="col-md-3">
                 <form id="ajax-form" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post">
-                    <label for="remove_comment" class="form-control">Remove user:</label>
-                    <input type="text" class="form-control" name="remove_comment" rows="1" placeholder="User ID:">
+                    <label for="remove_comment" class="form-control">Remove comment:</label>
+                    <input type="text" class="form-control" name="remove_comment" rows="1" placeholder="Comment ID:">
                     <button type="submit" class="btn btn-danger"
-                        style="height: 40px;padding: 8px 16px;width: 9rem;margin-top: 1rem;">Remove admin</button>
+                        style="height: 40px;padding: 8px 16px;width: 9rem;margin-top: 1rem;">Remove comment</button>
                 </form>
             </div>
         </div>
